@@ -146,44 +146,74 @@ function framebuffer:_updateWindow()
 end
 
 function framebuffer:refreshFullImp(x, y, w, h) -- luacheck: ignore
-    self:_updateWindow()
-    if has_eink_screen then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updateFull()
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_screen then
+            self:_updateFull()
+        end
     end
 end
 
 function framebuffer:refreshPartialImp(x, y, w, h)
-    self:_updateWindow()
-    if has_eink_full_support then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updatePartial(partial, delay_page, x, y, w, h)
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_full_support then
+            self:_updatePartial(partial, delay_page, x, y, w, h)
+        end
     end
 end
 
 function framebuffer:refreshFlashPartialImp(x, y, w, h)
-    self:_updateWindow()
-    if has_eink_full_support then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updatePartial(full, delay_page, x, y, w, h)
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_full_support then
+            self:_updatePartial(full, delay_page, x, y, w, h)
+        end
     end
 end
 
 function framebuffer:refreshUIImp(x, y, w, h)
-    self:_updateWindow()
-    if has_eink_full_support then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updatePartial(partial_ui, delay_ui, x, y, w, h)
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_full_support then
+            self:_updatePartial(partial_ui, delay_ui, x, y, w, h)
+        end
     end
 end
 
 function framebuffer:refreshFlashUIImp(x, y, w, h)
-    self:_updateWindow()
-    if has_eink_full_support then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updatePartial(full_ui, delay_ui, x, y, w, h)
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_full_support then
+            self:_updatePartial(full_ui, delay_ui, x, y, w, h)
+        end
     end
 end
 
 function framebuffer:refreshFastImp(x, y, w, h)
-    self:_updateWindow()
-    if has_eink_full_support then
+    if has_eink_screen and eink_platform == "huawei" then
         self:_updatePartial(fast, delay_fast, x, y, w, h)
+        self:_updateWindow()
+    else
+        self:_updateWindow()
+        if has_eink_full_support then
+            self:_updatePartial(fast, delay_fast, x, y, w, h)
+        end
     end
 end
 
