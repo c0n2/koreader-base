@@ -170,17 +170,22 @@ function framebuffer:refreshFullImp(x, y, w, h) -- luacheck: ignore
     else
         local frame_id = self:_updateWindow()
         if has_eink_screen then
-            if has_hisense_present_barrier and frame_id ~= nil and android.waitWindowDisplayPresent then
-                local rc, present_ns = android.waitWindowDisplayPresent(frame_id, 250)
-                if rc == 0 then
+            if has_hisense_present_barrier and frame_id ~= nil and android.waitWindowRefreshStart then
+                local rc, latch_ns, first_refresh_ns, polls = android.waitWindowRefreshStart(frame_id, 100)
+                if rc == 2 then
                     android.LOGI(string.format(
-                        "Hisense A7 native present barrier PASS frame=%s present_ns=%s",
-                        tostring(frame_id), tostring(present_ns)
+                        "Hisense A7 frame barrier PASS kind=first-refresh frame=%s latch_ns=%s first_refresh_ns=%s polls=%s",
+                        tostring(frame_id), tostring(latch_ns), tostring(first_refresh_ns), tostring(polls)
+                    ))
+                elseif rc == 1 then
+                    android.LOGI(string.format(
+                        "Hisense A7 frame barrier PASS kind=latch frame=%s latch_ns=%s first_refresh_ns=%s polls=%s",
+                        tostring(frame_id), tostring(latch_ns), tostring(first_refresh_ns), tostring(polls)
                     ))
                 else
                     android.LOGW(string.format(
-                        "Hisense A7 native present barrier failed rc=%s frame=%s present_ns=%s; forcing clear as fallback",
-                        tostring(rc), tostring(frame_id), tostring(present_ns)
+                        "Hisense A7 frame barrier failed rc=%s frame=%s latch_ns=%s first_refresh_ns=%s polls=%s; forcing clear as fallback",
+                        tostring(rc), tostring(frame_id), tostring(latch_ns), tostring(first_refresh_ns), tostring(polls)
                     ))
                 end
             end
