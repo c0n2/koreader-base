@@ -7,6 +7,9 @@ local C = ffi.C
 
 -- does the device has an e-ink screen?
 local has_eink_screen, eink_platform = android.isEink()
+local has_hisense_present_barrier = has_eink_screen
+    and type(eink_platform) == "string"
+    and eink_platform:match("^hisense%-a7") ~= nil
 
 -- does the device needs to handle all screen refreshes
 local has_eink_full_support = android.isEinkFull()
@@ -142,7 +145,22 @@ function framebuffer:_updateWindow()
         end
     end
 
-    android.lib.ANativeWindow_unlockAndPost(android.app.window);
+    local posted_frame_id
+    if has_hisense_present_barrier and android.getNextWindowFrameId then
+        local frame_id, rc = android.getNextWindowFrameId()
+        if frame_id ~= nil then
+            posted_frame_id = frame_id
+        else
+            android.LOGW(string.format("Hisense A7 native present frame-id capture failed rc=%s", tostring(rc)))
+        end
+    end
+
+    local post_rc = android.lib.ANativeWindow_unlockAndPost(android.app.window)
+    if post_rc < 0 then
+        android.LOGW(string.format("ANativeWindow_unlockAndPost failed rc=%d", post_rc))
+        return
+    end
+    return posted_frame_id
 end
 
 function framebuffer:refreshFullImp(x, y, w, h) -- luacheck: ignore
@@ -150,8 +168,22 @@ function framebuffer:refreshFullImp(x, y, w, h) -- luacheck: ignore
         self:_updateFull()
         self:_updateWindow()
     else
-        self:_updateWindow()
+        local frame_id = self:_updateWindow()
         if has_eink_screen then
+            if has_hisense_present_barrier and frame_id ~= nil and android.waitWindowDisplayPresent then
+                local rc, present_ns = android.waitWindowDisplayPresent(frame_id, 250)
+                if rc == 0 then
+                    android.LOGI(string.format(
+                        "Hisense A7 native present barrier PASS frame=%s present_ns=%s",
+                        tostring(frame_id), tostring(present_ns)
+                    ))
+                else
+                    android.LOGW(string.format(
+                        "Hisense A7 native present barrier failed rc=%s frame=%s present_ns=%s; forcing clear as fallback",
+                        tostring(rc), tostring(frame_id), tostring(present_ns)
+                    ))
+                end
+            end
             self:_updateFull()
         end
     end
