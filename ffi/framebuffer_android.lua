@@ -147,8 +147,8 @@ end
 
 function framebuffer:refreshFullImp(x, y, w, h) -- luacheck: ignore
     if has_eink_screen and eink_platform == "huawei" then
-        self:_updateFull()
         self:_updateWindow()
+        self:_updateFull()
     else
         self:_updateWindow()
         if has_eink_screen then
